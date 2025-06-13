@@ -1,15 +1,24 @@
 <?php
 
-declare(strict_types=1);
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-namespace PhpLlm\LlmChainBundle\Profiler;
+namespace Symfony\AI\AIBundle\Profiler;
 
-use PhpLlm\LlmChain\Platform\Message\Content\File;
-use PhpLlm\LlmChain\Platform\Model;
-use PhpLlm\LlmChain\Platform\PlatformInterface;
-use PhpLlm\LlmChain\Platform\Response\ResponseInterface;
+use Symfony\AI\Platform\Message\Content\File;
+use Symfony\AI\Platform\Model;
+use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Platform\Response\ResponseInterface;
 
 /**
+ * @author Christopher Hertel <mail@christopher-hertel.de>
+ *
  * @phpstan-type PlatformCallData array{
  *     model: Model,
  *     input: array<mixed>|string|object,
@@ -39,7 +48,7 @@ final class TraceablePlatform implements PlatformInterface
 
         $this->calls[] = [
             'model' => $model,
-            'input' => is_object($input) ? clone $input : $input,
+            'input' => \is_object($input) ? clone $input : $input,
             'options' => $options,
             'response' => $response->getContent(),
         ];

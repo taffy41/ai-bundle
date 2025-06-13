@@ -1,46 +1,53 @@
 <?php
 
-declare(strict_types=1);
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-namespace PhpLlm\LlmChainBundle\DependencyInjection;
+namespace Symfony\AI\AIBundle\DependencyInjection;
 
-use PhpLlm\LlmChain\Chain\Chain;
-use PhpLlm\LlmChain\Chain\ChainInterface;
-use PhpLlm\LlmChain\Chain\InputProcessor\SystemPromptInputProcessor;
-use PhpLlm\LlmChain\Chain\InputProcessorInterface;
-use PhpLlm\LlmChain\Chain\OutputProcessorInterface;
-use PhpLlm\LlmChain\Chain\StructuredOutput\ChainProcessor as StructureOutputProcessor;
-use PhpLlm\LlmChain\Chain\Toolbox\Attribute\AsTool;
-use PhpLlm\LlmChain\Chain\Toolbox\ChainProcessor as ToolProcessor;
-use PhpLlm\LlmChain\Chain\Toolbox\FaultTolerantToolbox;
-use PhpLlm\LlmChain\Chain\Toolbox\Tool\Chain as ChainTool;
-use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\ChainFactory;
-use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\MemoryToolFactory;
-use PhpLlm\LlmChain\Chain\Toolbox\ToolFactory\ReflectionToolFactory;
-use PhpLlm\LlmChain\Platform\Bridge\Anthropic\Claude;
-use PhpLlm\LlmChain\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
-use PhpLlm\LlmChain\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
-use PhpLlm\LlmChain\Platform\Bridge\Google\Gemini;
-use PhpLlm\LlmChain\Platform\Bridge\Google\PlatformFactory as GooglePlatformFactory;
-use PhpLlm\LlmChain\Platform\Bridge\Meta\Llama;
-use PhpLlm\LlmChain\Platform\Bridge\OpenAI\Embeddings;
-use PhpLlm\LlmChain\Platform\Bridge\OpenAI\GPT;
-use PhpLlm\LlmChain\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
-use PhpLlm\LlmChain\Platform\Bridge\Voyage\Voyage;
-use PhpLlm\LlmChain\Platform\ModelClientInterface;
-use PhpLlm\LlmChain\Platform\Platform;
-use PhpLlm\LlmChain\Platform\PlatformInterface;
-use PhpLlm\LlmChain\Platform\ResponseConverterInterface;
-use PhpLlm\LlmChain\Store\Bridge\Azure\SearchStore as AzureSearchStore;
-use PhpLlm\LlmChain\Store\Bridge\ChromaDB\Store as ChromaDBStore;
-use PhpLlm\LlmChain\Store\Bridge\MongoDB\Store as MongoDBStore;
-use PhpLlm\LlmChain\Store\Bridge\Pinecone\Store as PineconeStore;
-use PhpLlm\LlmChain\Store\Embedder;
-use PhpLlm\LlmChain\Store\StoreInterface;
-use PhpLlm\LlmChain\Store\VectorStoreInterface;
-use PhpLlm\LlmChainBundle\Profiler\DataCollector;
-use PhpLlm\LlmChainBundle\Profiler\TraceablePlatform;
-use PhpLlm\LlmChainBundle\Profiler\TraceableToolbox;
+use Symfony\AI\Agent\Agent;
+use Symfony\AI\Agent\AgentInterface;
+use Symfony\AI\Agent\InputProcessor\SystemPromptInputProcessor;
+use Symfony\AI\Agent\InputProcessorInterface;
+use Symfony\AI\Agent\OutputProcessorInterface;
+use Symfony\AI\Agent\StructuredOutput\AgentProcessor as StructureOutputProcessor;
+use Symfony\AI\Agent\Toolbox\AgentProcessor as ToolProcessor;
+use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
+use Symfony\AI\Agent\Toolbox\FaultTolerantToolbox;
+use Symfony\AI\Agent\Toolbox\Tool\Agent as AgentTool;
+use Symfony\AI\Agent\Toolbox\ToolFactory\ChainFactory;
+use Symfony\AI\Agent\Toolbox\ToolFactory\MemoryToolFactory;
+use Symfony\AI\Agent\Toolbox\ToolFactory\ReflectionToolFactory;
+use Symfony\AI\AIBundle\Profiler\DataCollector;
+use Symfony\AI\AIBundle\Profiler\TraceablePlatform;
+use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
+use Symfony\AI\Platform\Bridge\Anthropic\Claude;
+use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
+use Symfony\AI\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
+use Symfony\AI\Platform\Bridge\Google\Gemini;
+use Symfony\AI\Platform\Bridge\Google\PlatformFactory as GooglePlatformFactory;
+use Symfony\AI\Platform\Bridge\Meta\Llama;
+use Symfony\AI\Platform\Bridge\OpenAI\Embeddings;
+use Symfony\AI\Platform\Bridge\OpenAI\GPT;
+use Symfony\AI\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
+use Symfony\AI\Platform\Bridge\Voyage\Voyage;
+use Symfony\AI\Platform\ModelClientInterface;
+use Symfony\AI\Platform\Platform;
+use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Platform\ResponseConverterInterface;
+use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
+use Symfony\AI\Store\Bridge\ChromaDB\Store as ChromaDBStore;
+use Symfony\AI\Store\Bridge\MongoDB\Store as MongoDBStore;
+use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
+use Symfony\AI\Store\Embedder;
+use Symfony\AI\Store\StoreInterface;
+use Symfony\AI\Store\VectorStoreInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -51,11 +58,14 @@ use Symfony\Component\DependencyInjection\Reference;
 
 use function Symfony\Component\String\u;
 
-final class LlmChainExtension extends Extension
+/**
+ * @author Christopher Hertel <mail@christopher-hertel.de>
+ */
+final class AIExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $loader = new PhpFileLoader($container, new FileLocator(dirname(__DIR__).'/Resources/config'));
+        $loader = new PhpFileLoader($container, new FileLocator(\dirname(__DIR__).'/Resources/config'));
         $loader->load('services.php');
 
         $configuration = new Configuration();
@@ -63,8 +73,8 @@ final class LlmChainExtension extends Extension
         foreach ($config['platform'] ?? [] as $type => $platform) {
             $this->processPlatformConfig($type, $platform, $container);
         }
-        $platforms = array_keys($container->findTaggedServiceIds('llm_chain.platform'));
-        if (1 === count($platforms)) {
+        $platforms = array_keys($container->findTaggedServiceIds('symfony_ai.platform'));
+        if (1 === \count($platforms)) {
             $container->setAlias(PlatformInterface::class, reset($platforms));
         }
         if ($container->getParameter('kernel.debug')) {
@@ -72,24 +82,24 @@ final class LlmChainExtension extends Extension
                 $traceablePlatformDefinition = (new Definition(TraceablePlatform::class))
                     ->setDecoratedService($platform)
                     ->setAutowired(true)
-                    ->addTag('llm_chain.traceable_platform');
+                    ->addTag('symfony_ai.traceable_platform');
                 $suffix = u($platform)->afterLast('.')->toString();
-                $container->setDefinition('llm_chain.traceable_platform.'.$suffix, $traceablePlatformDefinition);
+                $container->setDefinition('symfony_ai.traceable_platform.'.$suffix, $traceablePlatformDefinition);
             }
         }
 
-        foreach ($config['chain'] as $chainName => $chain) {
-            $this->processChainConfig($chainName, $chain, $container);
+        foreach ($config['agent'] as $agentName => $agent) {
+            $this->processAgentConfig($agentName, $agent, $container);
         }
-        if (1 === count($config['chain']) && isset($chainName)) {
-            $container->setAlias(ChainInterface::class, 'llm_chain.chain.'.$chainName);
+        if (1 === \count($config['agent']) && isset($agentName)) {
+            $container->setAlias(AgentInterface::class, 'symfony_ai.agent.'.$agentName);
         }
 
         foreach ($config['store'] ?? [] as $type => $store) {
             $this->processStoreConfig($type, $store, $container);
         }
-        $stores = array_keys($container->findTaggedServiceIds('llm_chain.store'));
-        if (1 === count($stores)) {
+        $stores = array_keys($container->findTaggedServiceIds('symfony_ai.store'));
+        if (1 === \count($stores)) {
             $container->setAlias(VectorStoreInterface::class, reset($stores));
             $container->setAlias(StoreInterface::class, reset($stores));
         }
@@ -97,12 +107,12 @@ final class LlmChainExtension extends Extension
         foreach ($config['embedder'] as $embedderName => $embedder) {
             $this->processEmbedderConfig($embedderName, $embedder, $container);
         }
-        if (1 === count($config['embedder']) && isset($embedderName)) {
-            $container->setAlias(Embedder::class, 'llm_chain.embedder.'.$embedderName);
+        if (1 === \count($config['embedder']) && isset($embedderName)) {
+            $container->setAlias(Embedder::class, 'symfony_ai.embedder.'.$embedderName);
         }
 
         $container->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
-            $definition->addTag('llm_chain.tool', [
+            $definition->addTag('symfony_ai.tool', [
                 'name' => $attribute->name,
                 'description' => $attribute->description,
                 'method' => $attribute->method,
@@ -110,13 +120,13 @@ final class LlmChainExtension extends Extension
         });
 
         $container->registerForAutoconfiguration(InputProcessorInterface::class)
-            ->addTag('llm_chain.chain.input_processor');
+            ->addTag('symfony_ai.agent.input_processor');
         $container->registerForAutoconfiguration(OutputProcessorInterface::class)
-            ->addTag('llm_chain.chain.output_processor');
+            ->addTag('symfony_ai.agent.output_processor');
         $container->registerForAutoconfiguration(ModelClientInterface::class)
-            ->addTag('llm_chain.platform.model_client');
+            ->addTag('symfony_ai.platform.model_client');
         $container->registerForAutoconfiguration(ResponseConverterInterface::class)
-            ->addTag('llm_chain.platform.response_converter');
+            ->addTag('symfony_ai.platform.response_converter');
 
         if (false === $container->getParameter('kernel.debug')) {
             $container->removeDefinition(DataCollector::class);
@@ -130,7 +140,7 @@ final class LlmChainExtension extends Extension
     private function processPlatformConfig(string $type, array $platform, ContainerBuilder $container): void
     {
         if ('anthropic' === $type) {
-            $platformId = 'llm_chain.platform.anthropic';
+            $platformId = 'symfony_ai.platform.anthropic';
             $definition = (new Definition(Platform::class))
                 ->setFactory(AnthropicPlatformFactory::class.'::create')
                 ->setAutowired(true)
@@ -139,7 +149,7 @@ final class LlmChainExtension extends Extension
                 ->setArguments([
                     '$apiKey' => $platform['api_key'],
                 ])
-                ->addTag('llm_chain.platform');
+                ->addTag('symfony_ai.platform');
 
             if (isset($platform['version'])) {
                 $definition->replaceArgument('$version', $platform['version']);
@@ -152,7 +162,7 @@ final class LlmChainExtension extends Extension
 
         if ('azure' === $type) {
             foreach ($platform as $name => $config) {
-                $platformId = 'llm_chain.platform.azure.'.$name;
+                $platformId = 'symfony_ai.platform.azure.'.$name;
                 $definition = (new Definition(Platform::class))
                     ->setFactory(AzureOpenAIPlatformFactory::class.'::create')
                     ->setAutowired(true)
@@ -164,7 +174,7 @@ final class LlmChainExtension extends Extension
                         '$apiVersion' => $config['api_version'],
                         '$apiKey' => $config['api_key'],
                     ])
-                    ->addTag('llm_chain.platform');
+                    ->addTag('symfony_ai.platform');
 
                 $container->setDefinition($platformId, $definition);
             }
@@ -173,14 +183,14 @@ final class LlmChainExtension extends Extension
         }
 
         if ('google' === $type) {
-            $platformId = 'llm_chain.platform.google';
+            $platformId = 'symfony_ai.platform.google';
             $definition = (new Definition(Platform::class))
                 ->setFactory(GooglePlatformFactory::class.'::create')
                 ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments(['$apiKey' => $platform['api_key']])
-                ->addTag('llm_chain.platform');
+                ->addTag('symfony_ai.platform');
 
             $container->setDefinition($platformId, $definition);
 
@@ -188,27 +198,27 @@ final class LlmChainExtension extends Extension
         }
 
         if ('openai' === $type) {
-            $platformId = 'llm_chain.platform.openai';
+            $platformId = 'symfony_ai.platform.openai';
             $definition = (new Definition(Platform::class))
                 ->setFactory(OpenAIPlatformFactory::class.'::create')
                 ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments(['$apiKey' => $platform['api_key']])
-                ->addTag('llm_chain.platform');
+                ->addTag('symfony_ai.platform');
 
             $container->setDefinition($platformId, $definition);
 
             return;
         }
 
-        throw new \InvalidArgumentException(sprintf('Platform "%s" is not supported for configuration via bundle at this point.', $type));
+        throw new \InvalidArgumentException(\sprintf('Platform "%s" is not supported for configuration via bundle at this point.', $type));
     }
 
     /**
      * @param array<string, mixed> $config
      */
-    private function processChainConfig(string $name, array $config, ContainerBuilder $container): void
+    private function processAgentConfig(string $name, array $config, ContainerBuilder $container): void
     {
         // MODEL
         ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
@@ -218,23 +228,23 @@ final class LlmChainExtension extends Extension
             'claude' => Claude::class,
             'llama' => Llama::class,
             'gemini' => Gemini::class,
-            default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
+            default => throw new \InvalidArgumentException(\sprintf('Model "%s" is not supported.', $modelName)),
         };
         $modelDefinition = new Definition($modelClass);
         if (null !== $version) {
             $modelDefinition->setArgument('$name', $version);
         }
-        if (0 !== count($options)) {
+        if (0 !== \count($options)) {
             $modelDefinition->setArgument('$options', $options);
         }
-        $modelDefinition->addTag('llm_chain.model.language_model');
-        $container->setDefinition('llm_chain.chain.'.$name.'.model', $modelDefinition);
+        $modelDefinition->addTag('symfony_ai.model.language_model');
+        $container->setDefinition('symfony_ai.agent.'.$name.'.model', $modelDefinition);
 
-        // CHAIN
-        $chainDefinition = (new Definition(Chain::class))
+        // AGENT
+        $agentDefinition = (new Definition(Agent::class))
             ->setAutowired(true)
             ->setArgument('$platform', new Reference($config['platform']))
-            ->setArgument('$model', new Reference('llm_chain.chain.'.$name.'.model'));
+            ->setArgument('$model', new Reference('symfony_ai.agent.'.$name.'.model'));
 
         $inputProcessors = [];
         $outputProcessors = [];
@@ -242,57 +252,57 @@ final class LlmChainExtension extends Extension
         // TOOL & PROCESSOR
         if ($config['tools']['enabled']) {
             // Create specific toolbox and process if tools are explicitly defined
-            if (0 !== count($config['tools']['services'])) {
+            if (0 !== \count($config['tools']['services'])) {
                 $memoryFactoryDefinition = new Definition(MemoryToolFactory::class);
-                $container->setDefinition('llm_chain.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
+                $container->setDefinition('symfony_ai.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
                 $chainFactoryDefinition = new Definition(ChainFactory::class, [
-                    '$factories' => [new Reference('llm_chain.toolbox.'.$name.'.memory_factory'), new Reference(ReflectionToolFactory::class)],
+                    '$factories' => [new Reference('symfony_ai.toolbox.'.$name.'.memory_factory'), new Reference(ReflectionToolFactory::class)],
                 ]);
-                $container->setDefinition('llm_chain.toolbox.'.$name.'.chain_factory', $chainFactoryDefinition);
+                $container->setDefinition('symfony_ai.toolbox.'.$name.'.chain_factory', $chainFactoryDefinition);
 
                 $tools = [];
                 foreach ($config['tools']['services'] as $tool) {
                     $reference = new Reference($tool['service']);
                     // We use the memory factory in case method, description and name are set
                     if (isset($tool['name'], $tool['description'])) {
-                        if ($tool['is_chain']) {
-                            $chainWrapperDefinition = new Definition(ChainTool::class, ['$chain' => $reference]);
-                            $container->setDefinition('llm_chain.toolbox.'.$name.'.chain_wrapper.'.$tool['name'], $chainWrapperDefinition);
-                            $reference = new Reference('llm_chain.toolbox.'.$name.'.chain_wrapper.'.$tool['name']);
+                        if ($tool['is_agent']) {
+                            $chainWrapperDefinition = new Definition(AgentTool::class, ['$agent' => $reference]);
+                            $container->setDefinition('symfony_ai.toolbox.'.$name.'.agent_wrapper.'.$tool['name'], $chainWrapperDefinition);
+                            $reference = new Reference('symfony_ai.toolbox.'.$name.'.agent_wrapper.'.$tool['name']);
                         }
                         $memoryFactoryDefinition->addMethodCall('addTool', [$reference, $tool['name'], $tool['description'], $tool['method'] ?? '__invoke']);
                     }
                     $tools[] = $reference;
                 }
 
-                $toolboxDefinition = (new ChildDefinition('llm_chain.toolbox.abstract'))
-                    ->replaceArgument('$toolFactory', new Reference('llm_chain.toolbox.'.$name.'.chain_factory'))
+                $toolboxDefinition = (new ChildDefinition('symfony_ai.toolbox.abstract'))
+                    ->replaceArgument('$toolFactory', new Reference('symfony_ai.toolbox.'.$name.'.chain_factory'))
                     ->replaceArgument('$tools', $tools);
-                $container->setDefinition('llm_chain.toolbox.'.$name, $toolboxDefinition);
+                $container->setDefinition('symfony_ai.toolbox.'.$name, $toolboxDefinition);
 
                 if ($config['fault_tolerant_toolbox']) {
-                    $faultTolerantToolboxDefinition = (new Definition('llm_chain.fault_tolerant_toolbox.'.$name))
+                    $faultTolerantToolboxDefinition = (new Definition('symfony_ai.fault_tolerant_toolbox.'.$name))
                         ->setClass(FaultTolerantToolbox::class)
                         ->setAutowired(true)
-                        ->setDecoratedService('llm_chain.toolbox.'.$name);
-                    $container->setDefinition('llm_chain.fault_tolerant_toolbox.'.$name, $faultTolerantToolboxDefinition);
+                        ->setDecoratedService('symfony_ai.toolbox.'.$name);
+                    $container->setDefinition('symfony_ai.fault_tolerant_toolbox.'.$name, $faultTolerantToolboxDefinition);
                 }
 
                 if ($container->getParameter('kernel.debug')) {
-                    $traceableToolboxDefinition = (new Definition('llm_chain.traceable_toolbox.'.$name))
+                    $traceableToolboxDefinition = (new Definition('symfony_ai.traceable_toolbox.'.$name))
                         ->setClass(TraceableToolbox::class)
                         ->setAutowired(true)
-                        ->setDecoratedService('llm_chain.toolbox.'.$name)
-                        ->addTag('llm_chain.traceable_toolbox');
-                    $container->setDefinition('llm_chain.traceable_toolbox.'.$name, $traceableToolboxDefinition);
+                        ->setDecoratedService('symfony_ai.toolbox.'.$name)
+                        ->addTag('symfony_ai.traceable_toolbox');
+                    $container->setDefinition('symfony_ai.traceable_toolbox.'.$name, $traceableToolboxDefinition);
                 }
 
-                $toolProcessorDefinition = (new ChildDefinition('llm_chain.tool.chain_processor.abstract'))
-                    ->replaceArgument('$toolbox', new Reference('llm_chain.toolbox.'.$name));
-                $container->setDefinition('llm_chain.tool.chain_processor.'.$name, $toolProcessorDefinition);
+                $toolProcessorDefinition = (new ChildDefinition('symfony_ai.tool.agent_processor.abstract'))
+                    ->replaceArgument('$toolbox', new Reference('symfony_ai.toolbox.'.$name));
+                $container->setDefinition('symfony_ai.tool.agent_processor.'.$name, $toolProcessorDefinition);
 
-                $inputProcessors[] = new Reference('llm_chain.tool.chain_processor.'.$name);
-                $outputProcessors[] = new Reference('llm_chain.tool.chain_processor.'.$name);
+                $inputProcessors[] = new Reference('symfony_ai.tool.agent_processor.'.$name);
+                $outputProcessors[] = new Reference('symfony_ai.tool.agent_processor.'.$name);
             } else {
                 $inputProcessors[] = new Reference(ToolProcessor::class);
                 $outputProcessors[] = new Reference(ToolProcessor::class);
@@ -306,23 +316,23 @@ final class LlmChainExtension extends Extension
         }
 
         // SYSTEM PROMPT
-        if (is_string($config['system_prompt'])) {
+        if (\is_string($config['system_prompt'])) {
             $systemPromptInputProcessorDefinition = new Definition(SystemPromptInputProcessor::class);
             $systemPromptInputProcessorDefinition
                 ->setAutowired(true)
                 ->setArguments([
                     '$systemPrompt' => $config['system_prompt'],
-                    '$toolbox' => $config['include_tools'] ? new Reference('llm_chain.toolbox.'.$name) : null,
+                    '$toolbox' => $config['include_tools'] ? new Reference('symfony_ai.toolbox.'.$name) : null,
                 ]);
 
             $inputProcessors[] = $systemPromptInputProcessorDefinition;
         }
 
-        $chainDefinition
+        $agentDefinition
             ->setArgument('$inputProcessors', $inputProcessors)
             ->setArgument('$outputProcessors', $outputProcessors);
 
-        $container->setDefinition('llm_chain.chain.'.$name, $chainDefinition);
+        $container->setDefinition('symfony_ai.agent.'.$name, $agentDefinition);
     }
 
     /**
@@ -339,17 +349,17 @@ final class LlmChainExtension extends Extension
                     '$apiVersion' => $store['api_version'],
                 ];
 
-                if (array_key_exists('vector_field', $store)) {
+                if (\array_key_exists('vector_field', $store)) {
                     $arguments['$vectorFieldName'] = $store['vector_field'];
                 }
 
                 $definition = new Definition(AzureSearchStore::class);
                 $definition
                     ->setAutowired(true)
-                    ->addTag('llm_chain.store')
+                    ->addTag('symfony_ai.store')
                     ->setArguments($arguments);
 
-                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+                $container->setDefinition('symfony_ai.store.'.$type.'.'.$name, $definition);
             }
         }
 
@@ -359,9 +369,9 @@ final class LlmChainExtension extends Extension
                 $definition
                     ->setAutowired(true)
                     ->setArgument('$collectionName', $store['collection'])
-                    ->addTag('llm_chain.store');
+                    ->addTag('symfony_ai.store');
 
-                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+                $container->setDefinition('symfony_ai.store.'.$type.'.'.$name, $definition);
             }
         }
 
@@ -373,21 +383,21 @@ final class LlmChainExtension extends Extension
                     '$indexName' => $store['index_name'],
                 ];
 
-                if (array_key_exists('vector_field', $store)) {
+                if (\array_key_exists('vector_field', $store)) {
                     $arguments['$vectorFieldName'] = $store['vector_field'];
                 }
 
-                if (array_key_exists('bulk_write', $store)) {
+                if (\array_key_exists('bulk_write', $store)) {
                     $arguments['$bulkWrite'] = $store['bulk_write'];
                 }
 
                 $definition = new Definition(MongoDBStore::class);
                 $definition
                     ->setAutowired(true)
-                    ->addTag('llm_chain.store')
+                    ->addTag('symfony_ai.store')
                     ->setArguments($arguments);
 
-                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+                $container->setDefinition('symfony_ai.store.'.$type.'.'.$name, $definition);
             }
         }
 
@@ -397,21 +407,21 @@ final class LlmChainExtension extends Extension
                     '$namespace' => $store['namespace'],
                 ];
 
-                if (array_key_exists('filter', $store)) {
+                if (\array_key_exists('filter', $store)) {
                     $arguments['$filter'] = $store['filter'];
                 }
 
-                if (array_key_exists('top_k', $store)) {
+                if (\array_key_exists('top_k', $store)) {
                     $arguments['$topK'] = $store['top_k'];
                 }
 
                 $definition = new Definition(PineconeStore::class);
                 $definition
                     ->setAutowired(true)
-                    ->addTag('llm_chain.store')
+                    ->addTag('symfony_ai.store')
                     ->setArguments($arguments);
 
-                $container->setDefinition('llm_chain.store.'.$type.'.'.$name, $definition);
+                $container->setDefinition('symfony_ai.store.'.$type.'.'.$name, $definition);
             }
         }
     }
@@ -426,24 +436,24 @@ final class LlmChainExtension extends Extension
         $modelClass = match (strtolower((string) $modelName)) {
             'embeddings' => Embeddings::class,
             'voyage' => Voyage::class,
-            default => throw new \InvalidArgumentException(sprintf('Model "%s" is not supported.', $modelName)),
+            default => throw new \InvalidArgumentException(\sprintf('Model "%s" is not supported.', $modelName)),
         };
         $modelDefinition = (new Definition($modelClass));
         if (null !== $version) {
             $modelDefinition->setArgument('$name', $version);
         }
-        if (0 !== count($options)) {
+        if (0 !== \count($options)) {
             $modelDefinition->setArgument('$options', $options);
         }
-        $modelDefinition->addTag('llm_chain.model.embeddings_model');
-        $container->setDefinition('llm_chain.embedder.'.$name.'.model', $modelDefinition);
+        $modelDefinition->addTag('symfony_ai.model.embeddings_model');
+        $container->setDefinition('symfony_ai.embedder.'.$name.'.model', $modelDefinition);
 
         $definition = new Definition(Embedder::class, [
-            '$model' => new Reference('llm_chain.embedder.'.$name.'.model'),
+            '$model' => new Reference('symfony_ai.embedder.'.$name.'.model'),
             '$platform' => new Reference($config['platform']),
             '$store' => new Reference($config['store']),
         ]);
 
-        $container->setDefinition('llm_chain.embedder.'.$name, $definition);
+        $container->setDefinition('symfony_ai.embedder.'.$name, $definition);
     }
 }

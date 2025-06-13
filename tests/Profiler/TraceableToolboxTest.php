@@ -1,18 +1,25 @@
 <?php
 
-declare(strict_types=1);
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-namespace PhpLlm\LlmChainBundle\Tests\Profiler;
+namespace Symfony\AI\AIBundle\Tests\Profiler;
 
-use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
-use PhpLlm\LlmChain\Platform\Response\ToolCall;
-use PhpLlm\LlmChain\Platform\Tool\ExecutionReference;
-use PhpLlm\LlmChain\Platform\Tool\Tool;
-use PhpLlm\LlmChainBundle\Profiler\TraceableToolbox;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\AI\Agent\Toolbox\ToolboxInterface;
+use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
+use Symfony\AI\Platform\Response\ToolCall;
+use Symfony\AI\Platform\Tool\ExecutionReference;
+use Symfony\AI\Platform\Tool\Tool;
 
 #[CoversClass(TraceableToolbox::class)]
 #[Small]

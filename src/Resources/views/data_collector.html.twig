@@ -3,7 +3,7 @@
 {% block toolbar %}
     {% if collector.platformCalls|length > 0 %}
         {% set icon %}
-            {{ include('@LlmChain/icon.svg', { y: 18 }) }}
+            {{ include('@AI/icon.svg', { y: 18 }) }}
             <span class="sf-toolbar-value">{{ collector.platformCalls|length }}</span>
             <span class="sf-toolbar-info-piece-additional-detail">
                 <span class="sf-toolbar-label">calls</span>
@@ -37,8 +37,8 @@
 
 {% block menu %}
     <span class="label">
-        <span class="icon">{{ include('@LlmChain/icon.svg', { y: 16 }) }}</span>
-        <strong>LLM Chain</strong>
+        <span class="icon">{{ include('@AI/icon.svg', { y: 16 }) }}</span>
+        <strong>Symfony AI</strong>
         <span class="count">{{ collector.platformCalls|length }}</span>
     </span>
 {% endblock %}
@@ -56,7 +56,7 @@
 {% endmacro %}
 
 {% block panel %}
-    <h2>LLM Chain</h2>
+    <h2>Symfony AI</h2>
     <section class="metrics">
         <div class="metric-group">
             <div class="metric">

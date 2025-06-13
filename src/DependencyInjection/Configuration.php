@@ -1,19 +1,29 @@
 <?php
 
-declare(strict_types=1);
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-namespace PhpLlm\LlmChainBundle\DependencyInjection;
+namespace Symfony\AI\AIBundle\DependencyInjection;
 
-use PhpLlm\LlmChain\Platform\PlatformInterface;
-use PhpLlm\LlmChain\Store\StoreInterface;
+use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
+/**
+ * @author Christopher Hertel <mail@christopher-hertel.de>
+ */
 final class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('llm_chain');
+        $treeBuilder = new TreeBuilder('ai');
         $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
@@ -50,7 +60,7 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-                ->arrayNode('chain')
+                ->arrayNode('agent')
                     ->normalizeKeys(false)
                     ->useAttributeAsKey('name')
                     ->arrayPrototype()
@@ -75,7 +85,7 @@ final class Configuration implements ConfigurationInterface
                                     ->thenInvalid('The default system prompt must not be an empty string')
                                 ->end()
                                 ->defaultNull()
-                                ->info('The default system prompt of the chain')
+                                ->info('The default system prompt of the agent')
                             ->end()
                             ->booleanNode('include_tools')
                                 ->info('Include tool definitions at the end of the system prompt')
@@ -104,7 +114,7 @@ final class Configuration implements ConfigurationInterface
                                                 ->scalarNode('name')->end()
                                                 ->scalarNode('description')->end()
                                                 ->scalarNode('method')->end()
-                                                ->booleanNode('is_chain')->defaultFalse()->end()
+                                                ->booleanNode('is_agent')->defaultFalse()->end()
                                             ->end()
                                             ->beforeNormalization()
                                                 ->ifString()

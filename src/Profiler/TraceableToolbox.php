@@ -1,13 +1,22 @@
 <?php
 
-declare(strict_types=1);
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-namespace PhpLlm\LlmChainBundle\Profiler;
+namespace Symfony\AI\AIBundle\Profiler;
 
-use PhpLlm\LlmChain\Chain\Toolbox\ToolboxInterface;
-use PhpLlm\LlmChain\Platform\Response\ToolCall;
+use Symfony\AI\Agent\Toolbox\ToolboxInterface;
+use Symfony\AI\Platform\Response\ToolCall;
 
 /**
+ * @author Christopher Hertel <mail@christopher-hertel.de>
+ *
  * @phpstan-type ToolCallData array{
  *     call: ToolCall,
  *     result: string,
