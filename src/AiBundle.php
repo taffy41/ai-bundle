@@ -1670,7 +1670,7 @@ final class AiBundle extends AbstractBundle
 
         if ('memory' === $type) {
             foreach ($messageStores as $name => $messageStore) {
-                $definition = new Definition(InMemoryStore::class);
+                $definition = new Definition(\Symfony\AI\Chat\Bridge\Local\InMemoryStore::class);
                 $definition
                     ->setLazy(true)
                     ->setArgument(0, $messageStore['identifier'])
